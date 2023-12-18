@@ -14,7 +14,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { execSync } from 'child_process';
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
 class AppUpdater {
   constructor() {
@@ -26,23 +27,13 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('file', async (event, videoPath: string) => {
+ipcMain.handle('file', async (event, videoPath: string) => {
   const now = new Date();
   const date = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
   const output = path.join(app.getPath('desktop'), `output-${date}.mp4`);
-  console.log('videoPath', videoPath);
-
   const command = `ffmpeg -i "${videoPath}" "${output}"`;
-  console.log(`start: ${command}`);
-  const res = execSync(command);
-  console.log(res.toString());
-  console.log(`end: ${command}`);
-});
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+  const res = await exec(command);
+  return res;
 });
 
 if (process.env.NODE_ENV === 'production') {

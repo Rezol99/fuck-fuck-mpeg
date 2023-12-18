@@ -7,11 +7,16 @@ import { ChangeEvent, useCallback, useRef } from 'react';
 function Hello() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const path = e.target.files?.[0].path;
     if (!path) return;
-    window.electron.ipcRenderer.sendMessage('file', path);
-    console.log(e.target.files);
+    try {
+      await window.electron.ipcRenderer.sendMessage('file', path);
+      alert('Done!');
+    } catch (err) {
+      alert('Error!');
+      alert(err.message);
+    }
   };
 
   const handleClick = () => {
