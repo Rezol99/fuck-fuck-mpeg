@@ -15,7 +15,8 @@ function Hello() {
       alert('Done!');
     } catch (err) {
       alert('Error!');
-      alert(err.message);
+      const message = (err as any)?.message;
+      if (message) alert(message);
     }
   };
 
