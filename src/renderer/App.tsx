@@ -1,41 +1,52 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
+import styled from 'styled-components';
+import { useDropzone } from 'react-dropzone';
 import './App.css';
+import { ChangeEvent, useCallback, useRef } from 'react';
 
 function Hello() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const path = e.target.files?.[0].path;
+    if (!path) return;
+    window.electron.ipcRenderer.sendMessage('file', path);
+    console.log(e.target.files);
+  };
+
+  const handleClick = () => {
+    // eslint-disable-next-line no-unused-expressions
+    fileInputRef.current?.value && (fileInputRef.current.value = '');
+  };
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const changeEvent = {
+      target: {
+        files: acceptedFiles,
+      },
+    } as unknown as ChangeEvent<HTMLInputElement>;
+    handleFileChange(changeEvent);
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    noClick: true,
+  });
+
   return (
-    <div>
-      <div className="Hello">
-        <img width="200" alt="icon" src={icon} />
-      </div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
-      </div>
-    </div>
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <Container {...getRootProps()}>
+      <FileLabel>
+        <FileInput
+          ref={fileInputRef}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...getInputProps()}
+          onChange={handleFileChange}
+          onClick={handleClick}
+          accept={'video/*'}
+        />
+      </FileLabel>
+    </Container>
   );
 }
 
@@ -48,3 +59,27 @@ export default function App() {
     </Router>
   );
 }
+
+const Container = styled.div`
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+`;
+
+const FileLabel = styled.label`
+  position: absolute;
+  background-color: black;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+`;
+
+const FileInput = styled.input.attrs({ type: 'file' })`
+  height: 100%;
+  width: 100%;
+
+  &[type='file'] {
+    display: none;
+  }
+`;
