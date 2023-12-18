@@ -2,21 +2,27 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import './App.css';
-import { ChangeEvent, useCallback, useRef } from 'react';
+import { ChangeEvent, useCallback, useRef, useState } from 'react';
 
 function Hello() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isEncoding, setIsEncoding] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const path = e.target.files?.[0].path;
     if (!path) return;
     try {
+      setIsEncoding(true);
+      setFileName(path);
       await window.electron.ipcRenderer.sendMessage('file', path);
       alert('Done!');
     } catch (err) {
       alert('Error!');
       const message = (err as any)?.message;
       if (message) alert(message);
+    } finally {
+      setIsEncoding(false);
     }
   };
 
@@ -52,6 +58,16 @@ function Hello() {
           accept={'video/*'}
         />
       </FileLabel>
+      <Messages>
+        {isEncoding ? (
+          <>
+            <Message fontSize={36}>Encoding...</Message>
+            <Message fontSize={24}>{fileName}</Message>
+          </>
+        ) : (
+          <Message fontSize={26}>Drop a video file here</Message>
+        )}
+      </Messages>
     </Container>
   );
 }
@@ -70,11 +86,20 @@ const Container = styled.div`
   height: 100vh;
   width: 100vw;
   position: relative;
+  background-color: black;
+  transition: opacity 0.1s ease-in-out;
+
+  &:hover {
+    opacity: 0.4;
+  }
+
+  &:active {
+    opacity: 0.2;
+  }
 `;
 
 const FileLabel = styled.label`
   position: absolute;
-  background-color: black;
   display: flex;
   width: 100%;
   height: 100%;
@@ -88,4 +113,25 @@ const FileInput = styled.input.attrs({ type: 'file' })`
   &[type='file'] {
     display: none;
   }
+`;
+
+const Messages = styled.div`
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.6;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+`;
+
+const Message = styled.div<{ fontSize: number; }>`
+  font-size: ${({ fontSize }) => fontSize}px;
+  text-align: center;
+  color: white;
 `;
