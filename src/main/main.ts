@@ -31,7 +31,7 @@ ipcMain.handle('file', async (event, videoPath: string) => {
   const now = new Date();
   const date = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
   const output = path.join(app.getPath('desktop'), `output-${date}.mp4`);
-  const command = `ffmpeg -i "${videoPath}" "${output}"`;
+  const command = `/opt/homebrew/bin/ffmpeg -i "${videoPath}" "${output}"`;
   const res = await exec(command);
   return res;
 });
