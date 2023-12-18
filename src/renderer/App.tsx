@@ -130,7 +130,7 @@ const Messages = styled.div`
   gap: 20px;
 `;
 
-const Message = styled.div<{ fontSize: number; }>`
+const Message = styled.div<{ fontSize: number }>`
   font-size: ${({ fontSize }) => fontSize}px;
   text-align: center;
   color: white;
