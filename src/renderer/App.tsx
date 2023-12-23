@@ -3,6 +3,20 @@ import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import './App.css';
 import { ChangeEvent, useCallback, useRef, useState } from 'react';
+import { EncoderOptions } from '../types';
+
+const DEFAULT_ENCODER_OPTION: EncoderOptions = 'HD 720p 30fps';
+
+const options: EncoderOptions[] = [
+  'HD 1080p 30fps',
+  'HD 1080p 60fps',
+  'HD 720p 30fps',
+  'HD 720p 60fps',
+  'HD 480p 30fps',
+  'HD 480p 60fps',
+  'HD 360p 30fps',
+  'HD 360p 60fps',
+] as const;
 
 function Encoder() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +62,11 @@ function Encoder() {
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <Container {...getRootProps()}>
+      <PullDown defaultValue={DEFAULT_ENCODER_OPTION}>
+        {options.map((option) => (
+          <Option>{option}</Option>
+        ))}
+      </PullDown>
       <FileLabel>
         <FileInput
           ref={fileInputRef}
@@ -135,3 +154,18 @@ const Message = styled.div<{ fontSize: number }>`
   text-align: center;
   color: white;
 `;
+
+const PullDown = styled.select`
+  position: absolute;
+  bottom: 48px;
+  right: 50%;
+  transform: translate(50%, 0);
+  z-index: 100;
+  font-size: 18px;
+  padding: 8px;
+  width: 200px;
+  color: white;
+  background-color: black;
+`;
+
+const Option = styled.option``;
