@@ -4,7 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import './App.css';
 import { ChangeEvent, useCallback, useRef, useState } from 'react';
 
-function Hello() {
+function Encoder() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEncoding, setIsEncoding] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -76,7 +76,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Hello />} />
+        <Route path="/" element={<Encoder />} />
       </Routes>
     </Router>
   );
