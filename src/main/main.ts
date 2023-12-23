@@ -13,7 +13,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import { encoderOptionToCommandOptions, resolveHtmlPath } from './util';
+import { encoderOptionToCommandOptions, getAssetsPath, resolveHtmlPath } from './util';
 import { EncoderOption } from '../types';
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -36,6 +36,11 @@ ipcMain.handle('file', async (event, videoPath: string, option: EncoderOption) =
   const command = `/opt/homebrew/bin/ffmpeg -i "${videoPath}" ${ffmepgOptions}  "${output}"`;
   const res = await exec(command);
   return res;
+});
+
+ipcMain.handle('assets-path', async () => {
+  const assetsPath = await getAssetsPath();
+  return assetsPath;
 });
 
 if (process.env.NODE_ENV === 'production') {

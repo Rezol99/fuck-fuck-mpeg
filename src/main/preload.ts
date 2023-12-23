@@ -2,12 +2,12 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'file';
+export type Channels = 'file' | 'assets-path';
 
 const electronHandler = {
   ipcRenderer: {
     async sendMessage(channel: Channels, ...args: unknown[]) {
-      await ipcRenderer.invoke(channel, ...args);
+      return ipcRenderer.invoke(channel, ...args);
     },
     on(channel: Channels, func: (...args: unknown[]) => void) {
       const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>

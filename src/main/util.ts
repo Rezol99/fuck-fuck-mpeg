@@ -1,6 +1,7 @@
 /* eslint import/prefer-default-export: off */
 import { URL } from 'url';
 import path from 'path';
+import { app } from 'electron';
 import { EncoderOption } from '../types';
 
 export function resolveHtmlPath(htmlFileName: string) {
@@ -34,4 +35,11 @@ export const encoderOptionToCommandOptions = (option: EncoderOption) => {
     default:
       throw new Error('Invalid encoder option');
   }
+};
+
+export const getAssetsPath = async (): Promise<string> => {
+  const RESOURCES_PATH = app.isPackaged
+    ? path.join(process.resourcesPath, 'assets')
+    : path.join(__dirname, '../../assets');
+  return RESOURCES_PATH;
 };

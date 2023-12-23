@@ -2,8 +2,9 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import './App.css';
-import { ChangeEvent, useCallback, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { EncoderOption } from '../types';
+import { getAssetsPath, joinPaths } from './utils';
 
 const DEFAULT_ENCODER_OPTION: EncoderOption = 'HD 720p 30fps';
 
@@ -25,9 +26,27 @@ function Encoder() {
   );
   const [isEncoding, setIsEncoding] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [glitchUrl, setGlitchUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const assetsPath = await getAssetsPath();
+        const glitchUrl = joinPaths(
+          'file://',
+          assetsPath,
+          'videos',
+          'glitch.mp4',
+        );
+        setGlitchUrl(glitchUrl);
+      } catch (err) {
+        console.log(err);
+      }
+    })();
+  }, []);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const path = e.target.files?.[0].path;
+    const path = e.target.files?.[0]?.path;
     if (!path) return;
     try {
       setIsEncoding(true);
@@ -70,42 +89,51 @@ function Encoder() {
     setEncoderOption(e.target.value as EncoderOption);
   };
 
-  const dragRootProps = getRootProps();
-
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <Container {...dragRootProps} glitch>
-      <FileLabel>
-        <FileInput
-          ref={fileInputRef}
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...getInputProps()}
-          onChange={handleFileChange}
-          onClick={handleClick}
-          accept={'video/*'}
-        />
-      </FileLabel>
-      <Messages>
-        <Circle>
-          {isEncoding ? (
-            <>
-              <Message fontSize={36}>Encoding...</Message>
-              <Message fontSize={24}>{fileName}</Message>
-            </>
-          ) : (
-            <Message fontSize={26}>Drop a video file here</Message>
-          )}
-        </Circle>
-      </Messages>
-      <PullDown
-        defaultValue={encoderOption}
-        onChange={handleEncoderOptionChange}
-      >
-        {options.map((option) => (
-          <Option key={option}>{option}</Option>
-        ))}
-      </PullDown>
-    </Container>
+    <>
+      {
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        glitchUrl && isEncoding && (
+          <>
+            <Glitch {...getRootProps()} src={glitchUrl} loop autoPlay />
+            <Overlay />
+          </>
+        )
+      }
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      <Container {...getRootProps()} glitch>
+        <FileLabel>
+          <FileInput
+            ref={fileInputRef}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...getInputProps()}
+            onChange={handleFileChange}
+            onClick={handleClick}
+            accept={'video/*'}
+          />
+          <Messages>
+            <Circle>
+              {isEncoding ? (
+                <>
+                  <Message style={{ marginBottom: 8 }} fontSize={32}>Encoding...</Message>
+                  <Message fontSize={20}>{fileName}</Message>
+                </>
+              ) : (
+                <Message fontSize={26}>Drop a video file here</Message>
+              )}
+            </Circle>
+          </Messages>
+        </FileLabel>
+        <PullDown
+          defaultValue={encoderOption}
+          onChange={handleEncoderOptionChange}
+        >
+          {options.map((option) => (
+            <Option key={option}>{option}</Option>
+          ))}
+        </PullDown>
+      </Container>
+    </>
   );
 }
 
@@ -118,6 +146,27 @@ export default function App() {
     </Router>
   );
 }
+
+const Glitch = styled.video`
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  opacity: 0.3;
+  z-index: 100;
+`;
+
+const Overlay = styled.div`
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  background-color: #00000020;
+  z-index: 90;
+`;
 
 const Container = styled.div<{ glitch: boolean }>`
   height: 100vh;
@@ -150,7 +199,7 @@ const Container = styled.div<{ glitch: boolean }>`
     }
   }
 
-  animation: flickerAnimation 1.6s infinite;
+  animation: flickerAnimation 0.01s infinite;
   @keyframes flickerAnimation {
     0% {
       opacity: 0.2;
@@ -219,11 +268,12 @@ const Message = styled.div<{ fontSize: number }>`
   font-size: ${({ fontSize }) => fontSize}px;
   text-align: center;
   color: white;
+  max-width: 80%;
 `;
 
 const PullDown = styled.select`
   position: absolute;
-  bottom: 48px;
+  bottom: 72px;
   right: 50%;
   transform: translate(50%, 0);
   z-index: 100;
