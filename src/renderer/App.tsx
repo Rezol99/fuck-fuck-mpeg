@@ -115,7 +115,9 @@ function Encoder() {
             <Circle>
               {isEncoding ? (
                 <>
-                  <Message style={{ marginBottom: 8 }} fontSize={32}>Encoding...</Message>
+                  <Message style={{ marginBottom: 8 }} fontSize={32}>
+                    Encoding...
+                  </Message>
                   <Message fontSize={20}>{fileName}</Message>
                 </>
               ) : (

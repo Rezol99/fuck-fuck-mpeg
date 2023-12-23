@@ -13,7 +13,11 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import { encoderOptionToCommandOptions, getAssetsPath, resolveHtmlPath } from './util';
+import {
+  encoderOptionToCommandOptions,
+  getAssetsPath,
+  resolveHtmlPath,
+} from './util';
 import { EncoderOption } from '../types';
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -28,15 +32,18 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.handle('file', async (event, videoPath: string, option: EncoderOption) => {
-  const now = new Date();
-  const date = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-  const output = path.join(app.getPath('desktop'), `output-${date}.mp4`);
-  const ffmepgOptions = encoderOptionToCommandOptions(option);
-  const command = `/opt/homebrew/bin/ffmpeg -i "${videoPath}" ${ffmepgOptions}  "${output}"`;
-  const res = await exec(command);
-  return res;
-});
+ipcMain.handle(
+  'file',
+  async (event, videoPath: string, option: EncoderOption) => {
+    const now = new Date();
+    const date = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+    const output = path.join(app.getPath('desktop'), `output-${date}.mp4`);
+    const ffmepgOptions = encoderOptionToCommandOptions(option);
+    const command = `/opt/homebrew/bin/ffmpeg -i "${videoPath}" ${ffmepgOptions}  "${output}"`;
+    const res = await exec(command);
+    return res;
+  },
+);
 
 ipcMain.handle('assets-path', async () => {
   const assetsPath = await getAssetsPath();
