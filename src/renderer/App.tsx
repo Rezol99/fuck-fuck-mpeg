@@ -38,6 +38,7 @@ function Encoder() {
           'videos',
           'glitch.mp4',
         );
+        console.log(glitchUrl);
         setGlitchUrl(glitchUrl);
       } catch (err) {
         console.log(err);
@@ -93,12 +94,10 @@ function Encoder() {
     <>
       {
         // eslint-disable-next-line react/jsx-props-no-spreading
-        glitchUrl && isEncoding && (
-          <>
-            <Glitch {...getRootProps()} src={glitchUrl} loop autoPlay />
-            <Overlay />
-          </>
-        )
+        <div style={{ display: glitchUrl && isEncoding ? 'block' : 'none' }}>
+          {glitchUrl && <Glitch {...getRootProps()} src={glitchUrl} loop autoPlay /> }
+          <Overlay />
+        </div>
       }
       // eslint-disable-next-line react/jsx-props-no-spreading
       <Container {...getRootProps()} glitch>
@@ -115,7 +114,7 @@ function Encoder() {
             <Circle>
               {isEncoding ? (
                 <>
-                  <Message style={{ marginBottom: 8 }} fontSize={32}>
+                  <Message style={{ marginBottom: 8 }} fontSize={28}>
                     Encoding...
                   </Message>
                   <Message fontSize={20}>{fileName}</Message>
@@ -275,9 +274,8 @@ const Message = styled.div<{ fontSize: number }>`
 
 const PullDown = styled.select`
   position: absolute;
-  bottom: 72px;
-  right: 50%;
-  transform: translate(50%, 0);
+  top: 24px;
+  right: 48px;
   z-index: 100;
   font-size: 14px;
   padding: 10px 16px;
