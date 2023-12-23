@@ -78,7 +78,7 @@ function Encoder() {
         onChange={handleEncoderOptionChange}
       >
         {options.map((option) => (
-          <Option>{option}</Option>
+          <Option key={option}>{option}</Option>
         ))}
       </PullDown>
       <FileLabel>
