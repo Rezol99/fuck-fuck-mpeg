@@ -6,9 +6,10 @@ import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { EncoderOption } from '../types';
 import { getAssetsPath, joinPaths } from './utils';
 
-const DEFAULT_ENCODER_OPTION: EncoderOption = 'HD 720p 30fps';
+const DEFAULT_ENCODER_OPTION: EncoderOption = 'Default';
 
 const options: EncoderOption[] = [
+  'Default',
   'HD 1080p 30fps',
   'HD 1080p 60fps',
   'HD 720p 30fps',
