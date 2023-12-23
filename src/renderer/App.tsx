@@ -3,11 +3,11 @@ import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import './App.css';
 import { ChangeEvent, useCallback, useRef, useState } from 'react';
-import { EncoderOptions } from '../types';
+import { EncoderOption } from '../types';
 
-const DEFAULT_ENCODER_OPTION: EncoderOptions = 'HD 720p 30fps';
+const DEFAULT_ENCODER_OPTION: EncoderOption = 'HD 720p 30fps';
 
-const options: EncoderOptions[] = [
+const options: EncoderOption[] = [
   'HD 1080p 30fps',
   'HD 1080p 60fps',
   'HD 720p 30fps',
@@ -20,6 +20,9 @@ const options: EncoderOptions[] = [
 
 function Encoder() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [encoderOption, setEncoderOption] = useState<EncoderOption>(
+    DEFAULT_ENCODER_OPTION,
+  );
   const [isEncoding, setIsEncoding] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
 
@@ -29,12 +32,16 @@ function Encoder() {
     try {
       setIsEncoding(true);
       setFileName(path);
-      await window.electron.ipcRenderer.sendMessage('file', path);
+      await window.electron.ipcRenderer.sendMessage(
+        'file',
+        path,
+        encoderOption,
+      );
       alert('Done!');
     } catch (err) {
       alert('Error!');
       const message = (err as any)?.message;
-      if (message) alert(message);
+      if (message) alert(message.slice(0, 100));
     } finally {
       setIsEncoding(false);
     }
@@ -59,10 +66,17 @@ function Encoder() {
     noClick: true,
   });
 
+  const handleEncoderOptionChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setEncoderOption(e.target.value as EncoderOption);
+  };
+
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <Container {...getRootProps()}>
-      <PullDown defaultValue={DEFAULT_ENCODER_OPTION}>
+      <PullDown
+        defaultValue={encoderOption}
+        onChange={handleEncoderOptionChange}
+      >
         {options.map((option) => (
           <Option>{option}</Option>
         ))}

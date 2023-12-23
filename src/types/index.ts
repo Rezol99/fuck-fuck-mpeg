@@ -1,4 +1,4 @@
-export type EncoderOptions =
+export type EncoderOption =
   | 'HD 1080p 30fps'
   | 'HD 1080p 60fps'
   | 'HD 720p 30fps'
