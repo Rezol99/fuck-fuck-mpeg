@@ -108,17 +108,14 @@ function Encoder() {
         alert('Error!');
         const message = (err as any)?.message;
         if (message) alert(message.slice(0, 100));
-        setEncodings((prev) =>
-          prev.map((prevEncoding) => {
-            if (prevEncoding.uuid === encodingUUID) {
-              return {
-                ...prevEncoding,
-                status: 'error',
-              };
-            }
-            return prevEncoding;
-          }),
+
+        const index2 = tmpEncodings.findIndex(
+          (tmpEncoding) => tmpEncoding.uuid === encodingUUID,
         );
+        // eslint-disable-next-line no-continue
+        if (index2 === -1) continue;
+        tmpEncodings[index2].status = 'error';
+        setEncodings([...tmpEncodings]);
       }
     }
   };
