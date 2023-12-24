@@ -1,3 +1,5 @@
+/* eslint-disable no-continue */
+/* eslint-disable consistent-return */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable react/jsx-props-no-spreading */
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
@@ -54,37 +56,47 @@ function Encoder() {
     })();
   }, []);
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target?.files;
-    if (!files) return;
+  const createEncoding = (file: File) => {
+    const path = file?.path;
+    if (!path) return;
+    const uuid = crypto.randomUUID();
+    const encoding = {
+      uuid,
+      inputPath: path,
+      encoderOption,
+      status: 'waiting' as const,
+    } as const;
+    return encoding;
+  };
 
+  const createEncodings = (files: FileList) => {
     const tmpEncodings = [...encodings];
     for (const file of files) {
-      const path = file?.path;
-      // eslint-disable-next-line no-continue
-      if (!path) continue;
-      const uuid = crypto.randomUUID();
-      const encoding = {
-        uuid,
-        inputPath: path,
-        encoderOption,
-        status: 'waiting' as const,
-      } as const;
+      const encoding = createEncoding(file);
+      if (!encoding) continue;
       tmpEncodings.push(encoding);
     }
+    setEncodings([...tmpEncodings]);
+    return tmpEncodings;
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target?.files) return;
+    const tmpEncodings = createEncodings(e.target?.files);
     setEncodings([...tmpEncodings]);
 
     const waitingEncodings = tmpEncodings.filter(
       (encoding) => encoding.status === 'waiting',
     );
+
     for (const encoding of waitingEncodings) {
       const index = tmpEncodings.findIndex(
         (tmpEncoding) => tmpEncoding.uuid === encoding.uuid,
       );
-      // eslint-disable-next-line no-continue
       if (index === -1) continue;
       tmpEncodings[index].status = 'encoding';
       setEncodings([...tmpEncodings]);
+
       const encodingUUID = encoding.uuid;
       try {
         // eslint-disable-next-line no-await-in-loop
@@ -97,7 +109,7 @@ function Encoder() {
         const index2 = tmpEncodings.findIndex(
           (tmpEncoding) => tmpEncoding.uuid === encodedUUID,
         );
-        // eslint-disable-next-line no-continue
+
         if (index2 === -1) continue;
         tmpEncodings[index2].status = 'done';
         setEncodings([...tmpEncodings]);
@@ -112,7 +124,6 @@ function Encoder() {
         const index2 = tmpEncodings.findIndex(
           (tmpEncoding) => tmpEncoding.uuid === encodingUUID,
         );
-        // eslint-disable-next-line no-continue
         if (index2 === -1) continue;
         tmpEncodings[index2].status = 'error';
         setEncodings([...tmpEncodings]);
