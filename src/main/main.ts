@@ -14,6 +14,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import {
+  createOutputPath,
   encoderOptionToCommandOptions,
   getAssetsPath,
   resolveHtmlPath,
@@ -35,12 +36,9 @@ let mainWindow: BrowserWindow | null = null;
 ipcMain.handle(
   'file',
   async (event, videoPath: string, option: EncoderOption) => {
-    const now = new Date();
-    const date = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-    const filename = path.basename(videoPath).split('.')[0];
-    const output = path.join(app.getPath('desktop'), `${filename}-${date}.mp4`);
+    const outputPath = createOutputPath(videoPath, option);
     const ffmepgOptions = encoderOptionToCommandOptions(option);
-    const command = `/opt/homebrew/bin/ffmpeg -i "${videoPath}" ${ffmepgOptions}  "${output}"`;
+    const command = `/opt/homebrew/bin/ffmpeg -i "${videoPath}" ${ffmepgOptions}  "${outputPath}"`;
     const res = await exec(command);
     return res;
   },

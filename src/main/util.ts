@@ -39,6 +39,22 @@ export const encoderOptionToCommandOptions = (option: EncoderOption) => {
   }
 };
 
+const encoderOptionToFileNameOption = (option: EncoderOption) => {
+  return option.replace(' ', '-');
+};
+
+export const createOutputPath = (
+  inputPath: string,
+  encoderOption: EncoderOption,
+): string => {
+  const { name } = path.parse(inputPath);
+  const outputFileName = `${name}_${encoderOptionToFileNameOption(
+    encoderOption,
+  )}.mp4`;
+  const desktopPath = app.getPath('desktop');
+  return path.join(desktopPath, outputFileName);
+};
+
 export const getAssetsPath = async (): Promise<string> => {
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
