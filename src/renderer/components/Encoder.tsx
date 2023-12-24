@@ -76,7 +76,6 @@ function Encoder() {
       if (!encoding) continue;
       tmpEncodings.push(encoding);
     }
-    setEncodings([...tmpEncodings]);
     return tmpEncodings;
   };
 
