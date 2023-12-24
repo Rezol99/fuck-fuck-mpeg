@@ -20,6 +20,7 @@ import {
   resolveHtmlPath,
 } from './util';
 import { EncoderOption } from '../types';
+
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
