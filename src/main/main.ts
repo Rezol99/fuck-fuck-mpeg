@@ -22,7 +22,14 @@ import {
 import { EncoderOption } from '../types';
 
 const util = require('util');
-const exec = util.promisify(require('child_process').exec);
+const execPromise = util.promisify(require('child_process').exec);
+
+const exec = async (command: string) => {
+  console.log('command: ', command);
+  const res = await execPromise(command);
+  console.log('command res:', res);
+  return res;
+};
 
 class AppUpdater {
   constructor() {
@@ -35,13 +42,17 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 
 ipcMain.handle(
-  'file',
-  async (event, videoPath: string, option: EncoderOption) => {
-    const outputPath = createOutputPath(videoPath, option);
+  'encode',
+  async (event, inputPath: string, option: EncoderOption, uuid: string) => {
+    const outputPath = createOutputPath(inputPath, option);
     const ffmepgOptions = encoderOptionToCommandOptions(option);
-    const command = `/opt/homebrew/bin/ffmpeg -i "${videoPath}" ${ffmepgOptions}  "${outputPath}"`;
+    const command = `/opt/homebrew/bin/ffmpeg -i "${inputPath}" ${ffmepgOptions}  "${outputPath}"`;
     const res = await exec(command);
-    return res;
+    return {
+      inputPath,
+      res,
+      uuid,
+    };
   },
 );
 

@@ -50,7 +50,7 @@ export const createOutputPath = (
   const { name } = path.parse(inputPath);
   const outputFileName = `${name}_${encoderOptionToFileNameOption(
     encoderOption,
-  )}.mp4`;
+  )}_${Date.now()}.mp4`;
   const desktopPath = app.getPath('desktop');
   return path.join(desktopPath, outputFileName);
 };

@@ -1,9 +1,11 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable react/jsx-props-no-spreading */
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import { EncoderOption } from '../../types';
 import { getAssetsPath, joinPaths } from '../utils';
+import VideoEncoder from '../video/VideoEncoder';
 
 const DEFAULT_ENCODER_OPTION: EncoderOption = 'Default';
 
@@ -24,8 +26,15 @@ function Encoder() {
   const [encoderOption, setEncoderOption] = useState<EncoderOption>(
     DEFAULT_ENCODER_OPTION,
   );
-  const [isEncoding, setIsEncoding] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [encodings, setEncodings] = useState<
+    {
+      uuid: string;
+      inputPath: string;
+      encoderOption: EncoderOption;
+      status: 'waiting' | 'encoding' | 'done' | 'error';
+    }[]
+  >([]);
+
   const [glitchUrl, setGlitchUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,23 +55,71 @@ function Encoder() {
   }, []);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const path = e.target.files?.[0]?.path;
-    if (!path) return;
-    try {
-      setIsEncoding(true);
-      setFileName(path);
-      await window.electron.ipcRenderer.sendMessage(
-        'file',
-        path,
+    const files = e.target?.files;
+    if (!files) return;
+
+    const tmpEncodings = [...encodings];
+    for (const file of files) {
+      const path = file?.path;
+      // eslint-disable-next-line no-continue
+      if (!path) continue;
+      const uuid = crypto.randomUUID();
+      const encoding = {
+        uuid,
+        inputPath: path,
         encoderOption,
+        status: 'waiting' as const,
+      } as const;
+      tmpEncodings.push(encoding);
+    }
+    setEncodings([...tmpEncodings]);
+
+    const waitingEncodings = tmpEncodings.filter(
+      (encoding) => encoding.status === 'waiting',
+    );
+    for (const encoding of waitingEncodings) {
+      const index = tmpEncodings.findIndex(
+        (tmpEncoding) => tmpEncoding.uuid === encoding.uuid,
       );
-      alert('Done!');
-    } catch (err) {
-      alert('Error!');
-      const message = (err as any)?.message;
-      if (message) alert(message.slice(0, 100));
-    } finally {
-      setIsEncoding(false);
+      // eslint-disable-next-line no-continue
+      if (index === -1) continue;
+      tmpEncodings[index].status = 'encoding';
+      setEncodings([...tmpEncodings]);
+      const encodingUUID = encoding.uuid;
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const encoded = await VideoEncoder.encode(
+          encoding.inputPath,
+          encodingUUID,
+          encoderOption,
+        );
+        const encodedUUID = encoded.uuid;
+        const index2 = tmpEncodings.findIndex(
+          (tmpEncoding) => tmpEncoding.uuid === encodedUUID,
+        );
+        // eslint-disable-next-line no-continue
+        if (index2 === -1) continue;
+        tmpEncodings[index2].status = 'done';
+        setEncodings([...tmpEncodings]);
+        const message = `Done!\n\n${encoded.inputPath}`;
+        alert(message.slice(0, 100));
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        alert('Error!');
+        const message = (err as any)?.message;
+        if (message) alert(message.slice(0, 100));
+        setEncodings((prev) =>
+          prev.map((prevEncoding) => {
+            if (prevEncoding.uuid === encodingUUID) {
+              return {
+                ...prevEncoding,
+                status: 'error',
+              };
+            }
+            return prevEncoding;
+          }),
+        );
+      }
     }
   };
 
@@ -89,6 +146,10 @@ function Encoder() {
     setEncoderOption(e.target.value as EncoderOption);
   };
 
+  const isEncoding = encodings.some(
+    (encoding) => encoding.status === 'encoding',
+  );
+
   return (
     <>
       <div style={{ display: glitchUrl && isEncoding ? 'block' : 'none' }}>
@@ -113,7 +174,11 @@ function Encoder() {
                   <Message style={{ marginBottom: 8 }} fontSize={28}>
                     Encoding...
                   </Message>
-                  <Message fontSize={20}>{fileName}</Message>
+                  {encodings.map((encoding) => (
+                    <Message key={encoding.uuid} fontSize={20}>
+                      {encoding.inputPath} {encoding.status}
+                    </Message>
+                  ))}
                 </>
               ) : (
                 <Message fontSize={26}>Drop a video file here</Message>
